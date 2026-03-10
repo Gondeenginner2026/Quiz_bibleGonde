@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz 1 Origem do mal</title>
+    <style>
+        :root { --primary: #2c3e50; --accent: #e67e22; --success: #27ae60; --error: #c0392b; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        #quiz-container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .question-block { margin-bottom: 25px; padding: 20px; border: 2px solid #eee; border-radius: 10px; transition: 0.4s; position: relative; }
+        
+        /* Sombras de feedback solicitadas */
+        .correct { box-shadow: 0 0 15px rgba(39, 174, 96, 0.4); border-color: var(--success) !important; background: #f1f9f4; }
+        .wrong { box-shadow: 0 0 15px rgba(192, 57, 43, 0.4); border-color: var(--error) !important; background: #fff5f5; }
+        
+        .options label { display: block; margin: 8px 0; padding: 12px; background: #f8f9fa; border-radius: 8px; cursor: pointer; }
+        .locked { pointer-events: none; }
+        button { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        #completion-msg { text-align: center; border: 2px dashed var(--accent); padding: 20px; margin: 20px 0; border-radius: 10px; background: #fffcf9; }
+        .admin-section { margin-top: 50px; border-top: 2px solid #ddd; padding-top: 20px; }
+        .hidden { display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }
+        th { background: #eee; }
+    </style>
+</head>
+<body>
+
+<div id="quiz-container">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h1 id="quiz-title">O Grande Conflito</h1>
+    </div>
+
+    <div id="questions-area"></div>
+
+    <div id="user-info" class="question-block">
+        <h3>Insira seu nome para concluir:</h3>
+        <input type="text" id="user-name" placeholder="Seu nome completo" style="width: 95%; padding: 12px; border-radius: 5px; border: 1px solid #ccc;">
+    </div>
+
+    <button id="btn-submit" onclick="submitQuiz()">ENVIAR RESPOSTAS</button>
+
+    <div id="completion-msg" class="hidden">
+        <h2 style="font-style: italic;">"Lâmpada para os meus pés é a tua palavra e luz para o meu caminho."</h2>
+        <p>(Salmos 119:105)</p>
+        <hr>
+        <p><strong>PARABÉNS! VOCÊ TERMINOU O QUIZ!</strong></p>
+        <button onclick="showResults()" style="background: var(--success);">VER MEU RESULTADO</button>
+    </div>
+
+    <div id="results-summary" class="hidden" style="text-align:center; font-size: 20px; margin: 20px; font-weight: bold;"></div>
+
+    <div class="admin-section">
+        <button id="btn-admin-access" onclick="accessAdmin()" style="background: #7f8c8d; width: auto; padding: 8px 15px;">Painel Administrativo</button>
+        <div id="admin-panel" class="hidden">
+            <h3>Dados dos Estudantes</h3>
+            <div id="admin-content"></div>
+            <h3>Percentual de Erros por Questão</h3>
+            <div id="stats-content"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    { q: "Como era o céu antes do pecado?", opts: ["Lugar de medo e regras", "Perfeita harmonia e amor", "Vazio e silencioso"], ans: 1 },
+    { q: "Quais categorias de anjos havia no céu?", opts: ["Apenas anjos mensageiros", "Serafins, Querubins e Anjos", "Não havia categorias"], ans: 1 },
+    { q: "Quem era Lúcifer e em que grupo pertencia?", opts: ["Um anjo comum", "O Querubim Ungido", "O próprio Deus"], ans: 1 },
+    { q: "Por que Lúcifer se rebelou?", opts: ["Por orgulho e desejo de ser igual a Deus", "Porque estava cansado de trabalhar", "Por ordem de outros anjos"], ans: 0 },
+    { q: "Contra quem era a batalha no céu (Apoc. 12:7)?", opts: ["Miguel e seus anjos vs Dragão", "Adão vs Eva", "Deus vs Humanos"], ans: 0 },
+    { q: "Por que Deus não destruiu Lúcifer imediatamente?", opts: ["Porque não podia", "Para que o universo visse os frutos do pecado", "Porque Lúcifer fugiu"], ans: 1 },
+    { q: "Em quantos dias Deus fez o Céu e a Terra?", opts: ["6 dias literais e 1 de descanso", "Milhões de anos", "1 único dia"], ans: 0 },
+    { q: "Por que Deus criou Adão e Eva?", opts: ["Para serem escravos", "Para terem comunhão e cuidar da Terra", "Para lutar no céu"], ans: 1 },
+    { q: "Como o pecado entrou no mundo?", opts: ["Através da desobediência no Éden", "Através de uma falha na criação", "O pecado sempre existiu"], ans: 0 },
+    { q: "Por quem o pecado entrou no mundo humano?", opts: ["Pela serpente", "Através de Adão", "Através de Caim"], ans: 1 },
+    { q: "Qual foi a sentença para o homem (Adão)?", opts: ["Ficar rico", "Trabalho penoso e morte física", "Viver para sempre"], ans: 1 },
+    { q: "Qual foi a solução para o homem voltar a Deus?", opts: ["A reencarnação", "O sacrifício de Jesus Cristo", "Fazer caridade apenas"], ans: 1 }
+];
+
+function renderQuiz() {
+    const area = document.getElementById('questions-area');
+    quizData.forEach((item, i) => {
+        area.innerHTML += `
+            <div class="question-block" id="q-block-${i}">
+                <p><strong>${i+1}. ${item.q}</strong></p>
+                <div class="options" id="opts-${i}">
+                    ${item.opts.map((opt, optIdx) => `
+                        <label><input type="radio" name="q${i}" value="${optIdx}"> ${opt}</label>
+                    `).join('')}
+                </div>
+            </div>`;
+    });
+}
+
+function submitQuiz() {
+    const name = document.getElementById('user-name').value;
+    if(!name.trim()) return alert("Digite seu nome!");
+    
+    document.querySelectorAll('.question-block').forEach(b => b.classList.add('locked'));
+    document.getElementById('btn-submit').classList.add('hidden');
+    document.getElementById('user-info').classList.add('hidden');
+    document.getElementById('completion-msg').classList.remove('hidden');
+
+    saveToHistory(name);
+}
+
+function showResults() {
+    let score = 0;
+    quizData.forEach((item, i) => {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`)?.value;
+        const block = document.getElementById(`q-block-${i}`);
+        
+        if (parseInt(selected) === item.ans) {
+            score++;
+            block.classList.add('correct');
+        } else {
+            block.classList.add('wrong');
+            // Nota: O código apenas marca como vermelho. Ele NÃO mostra qual era a correta, 
+            // forçando o aluno a revisar o conteúdo como você pediu.
+        }
+    });
+    document.getElementById('results-summary').innerHTML = `Você acertou ${score} de ${quizData.length}`;
+    document.getElementById('results-summary').classList.remove('hidden');
+}
+
+function saveToHistory(name) {
+    let history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
+    let answers = [];
+    quizData.forEach((_, i) => {
+        answers.push(document.querySelector(`input[name="q${i}"]:checked`)?.value || "n/a");
+    });
+    history.push({ name, answers, date: new Date().toLocaleString() });
+    localStorage.setItem('quiz_history', JSON.stringify(history));
+fetch('https://formspree.io/f/mojkedld',{method:'POST',headers: { 'Content-Type': 'application/json' },body: JSON.stringify({ nome: name, respostas: answers })});}
+
+function accessAdmin() {
+    const pass = prompt("Digite a senha do administrador:");
+    if (pass === "GondeBiblia") {
+        document.getElementById('admin-panel').classList.remove('hidden');
+        renderAdminData();
+    } else {
+        alert("Senha incorreta!");
+    }
+}
+
+function renderAdminData() {
+    const data = JSON.parse(localStorage.getItem('quiz_history') || '[]');
+    const content = document.getElementById('admin-content');
+    const stats = document.getElementById('stats-content');
+    
+    // Tabela de Alunos
+    let table = `<table><tr><th>Data</th><th>Nome</th><th>Erros (Questão: Resposta Dada)</th></tr>`;
+    let errorCount = Array(quizData.length).fill(0);
+
+    data.forEach(entry => {
+        let userErrors = [];
+        entry.answers.forEach((ans, i) => {
+            if (parseInt(ans) !== quizData[i].ans) {
+                userErrors.push(`Q${i+1}: ${quizData[i].opts[ans] || 'Branco'}`);
+                errorCount[i]++;
+            }
+        });
+        table += `<tr><td>${entry.date}</td><td>${entry.name}</td><td>${userErrors.join(', ')}</td></tr>`;
+    });
+    content.innerHTML = table + `</table>`;
+
+    // Gráfico de Percentual de Erros (Simples)
+    let statsHtml = "";
+    let sortedStats = errorCount.map((count, i) => ({ q: i + 1, count: count }))
+                               .sort((a, b) => b.count - a.count);
+
+    sortedStats.forEach(s => {
+        let percent = data.length > 0 ? (s.count / data.length * 100).toFixed(1) : 0;
+        statsHtml += `
+            <div style="margin: 5px 0;">
+                Questão ${s.q}: ${percent}% de erro
+                <div style="background:#eee; width:100%; height:10px; border-radius:5px;">
+                    <div style="background:var(--error); width:${percent}%; height:10px; border-radius:5px;"></div>
+                </div>
+            </div>`;
+    });
+    stats.innerHTML = statsHtml;
+}
+
+renderQuiz();
+</script>
+</body>
+</html>
