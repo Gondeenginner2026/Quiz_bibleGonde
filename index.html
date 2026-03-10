@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Doutrina Bíblica</title>
+    <title>Quiz 1 Origem do mal</title>
     <style>
         :root { --primary: #2c3e50; --accent: #e67e22; --success: #27ae60; --error: #c0392b; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
@@ -132,7 +132,7 @@ function saveToHistory(name) {
     });
     history.push({ name, answers, date: new Date().toLocaleString() });
     localStorage.setItem('quiz_history', JSON.stringify(history));
-}
+fetch('https://formspree.io/f/mojkedld',{method:'POST',headers: { 'Content-Type': 'application/json' },body: JSON.stringify({ nome: name, respostas: answers })});}
 
 function accessAdmin() {
     const pass = prompt("Digite a senha do administrador:");
