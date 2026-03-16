@@ -3,60 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz 1 Origem do mal</title>
+    <title>Quiz: O Grande Conflito e a Origem do Mal</title>
     <style>
         :root { --primary: #2c3e50; --accent: #e67e22; --success: #27ae60; --error: #c0392b; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
         #quiz-container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .question-block { margin-bottom: 25px; padding: 20px; border: 2px solid #eee; border-radius: 10px; transition: 0.4s; position: relative; }
         
-        /* Sombras de feedback solicitadas */
         .correct { box-shadow: 0 0 15px rgba(39, 174, 96, 0.4); border-color: var(--success) !important; background: #f1f9f4; }
         .wrong { box-shadow: 0 0 15px rgba(192, 57, 43, 0.4); border-color: var(--error) !important; background: #fff5f5; }
         
-        .options label { display: block; margin: 8px 0; padding: 12px; background: #f8f9fa; border-radius: 8px; cursor: pointer; }
+        .options label { display: block; margin: 8px 0; padding: 12px; background: #f8f9fa; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .options label:hover { background: #eef0f2; }
         .locked { pointer-events: none; }
-        button { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        button { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; margin-top: 10px; transition: 0.3s; }
+        button:hover { opacity: 0.9; }
         #completion-msg { text-align: center; border: 2px dashed var(--accent); padding: 20px; margin: 20px 0; border-radius: 10px; background: #fffcf9; }
         .admin-section { margin-top: 50px; border-top: 2px solid #ddd; padding-top: 20px; }
         .hidden { display: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }
-        th { background: #eee; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 14px; }
+        th { background: #f4f4f4; color: var(--primary); }
     </style>
 </head>
 <body>
 
 <div id="quiz-container">
     <div style="text-align: center; margin-bottom: 20px;">
-        <h1 id="quiz-title">O Grande Conflito</h1>
+        <h1 id="quiz-title">A Origem do Mal</h1>
+        <p>Estudo bíblico sobre o início do Grande Conflito</p>
     </div>
 
     <div id="questions-area"></div>
 
     <div id="user-info" class="question-block">
         <h3>Insira seu nome para concluir:</h3>
-        <input type="text" id="user-name" placeholder="Seu nome completo" style="width: 95%; padding: 12px; border-radius: 5px; border: 1px solid #ccc;">
+        <input type="text" id="user-name" placeholder="Seu nome completo" style="width: 100%; padding: 12px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;">
     </div>
 
     <button id="btn-submit" onclick="submitQuiz()">ENVIAR RESPOSTAS</button>
 
     <div id="completion-msg" class="hidden">
-        <h2 style="font-style: italic;">"Lâmpada para os meus pés é a tua palavra e luz para o meu caminho."</h2>
+        <h2 style="font-style: italic; color: var(--primary);">"Lâmpada para os meus pés é a tua palavra e luz para o meu caminho."</h2>
         <p>(Salmos 119:105)</p>
         <hr>
         <p><strong>PARABÉNS! VOCÊ TERMINOU O QUIZ!</strong></p>
         <button onclick="showResults()" style="background: var(--success);">VER MEU RESULTADO</button>
     </div>
 
-    <div id="results-summary" class="hidden" style="text-align:center; font-size: 20px; margin: 20px; font-weight: bold;"></div>
+    <div id="results-summary" class="hidden" style="text-align:center; font-size: 20px; margin: 20px; font-weight: bold; color: var(--primary);"></div>
 
     <div class="admin-section">
         <button id="btn-admin-access" onclick="accessAdmin()" style="background: #7f8c8d; width: auto; padding: 8px 15px;">Painel Administrativo</button>
         <div id="admin-panel" class="hidden">
-            <h3>Dados dos Estudantes</h3>
-            <div id="admin-content"></div>
-            <h3>Percentual de Erros por Questão</h3>
+            <h3>Relatório de Estudantes</h3>
+            <div id="admin-content" style="overflow-x: auto;"></div>
+            <h3>Análise de Dificuldade (Erros)</h3>
             <div id="stats-content"></div>
         </div>
     </div>
@@ -64,18 +66,18 @@
 
 <script>
 const quizData = [
-    { q: "Como era o céu antes do pecado?", opts: ["Lugar de medo e regras", "Perfeita harmonia e amor", "Vazio e silencioso"], ans: 1 },
-    { q: "Quais categorias de anjos havia no céu?", opts: ["Apenas anjos mensageiros", "Serafins, Querubins e Anjos", "Não havia categorias"], ans: 1 },
-    { q: "Quem era Lúcifer e em que grupo pertencia?", opts: ["Um anjo comum", "O Querubim Ungido", "O próprio Deus"], ans: 1 },
-    { q: "Por que Lúcifer se rebelou?", opts: ["Por orgulho e desejo de ser igual a Deus", "Porque estava cansado de trabalhar", "Por ordem de outros anjos"], ans: 0 },
-    { q: "Contra quem era a batalha no céu (Apoc. 12:7)?", opts: ["Miguel e seus anjos vs Dragão", "Adão vs Eva", "Deus vs Humanos"], ans: 0 },
-    { q: "Por que Deus não destruiu Lúcifer imediatamente?", opts: ["Porque não podia", "Para que o universo visse os frutos do pecado", "Porque Lúcifer fugiu"], ans: 1 },
-    { q: "Em quantos dias Deus fez o Céu e a Terra?", opts: ["6 dias literais e 1 de descanso", "Milhões de anos", "1 único dia"], ans: 0 },
-    { q: "Por que Deus criou Adão e Eva?", opts: ["Para serem escravos", "Para terem comunhão e cuidar da Terra", "Para lutar no céu"], ans: 1 },
-    { q: "Como o pecado entrou no mundo?", opts: ["Através da desobediência no Éden", "Através de uma falha na criação", "O pecado sempre existiu"], ans: 0 },
-    { q: "Por quem o pecado entrou no mundo humano?", opts: ["Pela serpente", "Através de Adão", "Através de Caim"], ans: 1 },
-    { q: "Qual foi a sentença para o homem (Adão)?", opts: ["Ficar rico", "Trabalho penoso e morte física", "Viver para sempre"], ans: 1 },
-    { q: "Qual foi a solução para o homem voltar a Deus?", opts: ["A reencarnação", "O sacrifício de Jesus Cristo", "Fazer caridade apenas"], ans: 1 }
+    { q: "Como era o céu antes do pecado?", opts: ["Um lugar de regras rígidas e medo", "Um lugar de perfeita harmonia, paz e adoração", "Um lugar com discórdia controlada"], ans: 1 },
+    { q: "Quais são os anjos relacionados à adoração e pureza (Isaías 6:2)?", opts: ["Querubins", "Mensageiros", "Serafins"], ans: 2 },
+    { q: "Quem é Miguel, o Arcanjo, mencionado em Judas 1:9 e Daniel 12:1?", opts: ["O principal dos anjos criados", "Cristo em Sua função de Comandante", "Um anjo mensageiro como Gabriel"], ans: 1 },
+    { q: "Qual era a função de Lúcifer como 'Querubim Ungido'?", opts: ["Anunciar boas novas", "Cobrir e guardar a Glória de Deus", "Cuidar da natureza"], ans: 1 },
+    { q: "Qual foi a raiz da rebelião de Lúcifer no coração?", opts: ["Desejo de conhecer a Terra", "Orgulho e desejo de ser igual a Deus", "Cansaço de servir"], ans: 1 },
+    { q: "Contra quem foi a batalha descrita em Apocalipse 12:7-9?", opts: ["Miguel e seus anjos vs Dragão e seus anjos", "Anjos vs Seres Humanos", "Gabriel vs Lúcifer"], ans: 0 },
+    { q: "Por que Deus não destruiu Lúcifer imediatamente?", opts: ["Porque Lúcifer era mais forte", "Para que o universo visse as consequências do pecado e obedecesse por amor", "Porque Deus não faz julgamentos"], ans: 1 },
+    { q: "Em quantos dias Deus criou o nosso mundo e descansou?", opts: ["Criou em 6 dias literais e descansou no 7º", "Criou em 1 dia e descansou 6", "Levou milhões de anos"], ans: 0 },
+    { q: "Segundo o estudo, por que Deus criou Adão e Eva?", opts: ["Para substituir os anjos caídos", "Para serem administradores da criação e testemunhas do conflito", "Para morarem no céu imediatamente"], ans: 1 },
+    { q: "Através de quem o pecado entrou na raça humana (Representante)?", opts: ["Eva", "Adão", "Caim"], ans: 1 },
+    { q: "Qual foi a sentença dada ao Homem (Adão) após o pecado?", opts: ["Rastejar sobre a terra", "Trabalho penoso, fadiga e morte física", "Dor no parto"], ans: 1 },
+    { q: "Qual é o lugar onde Deus ensina o caminho da Redenção (Salmo 77:13)?", opts: ["No deserto", "No Santuário", "No Monte Sinai"], ans: 1 }
 ];
 
 function renderQuiz() {
@@ -95,7 +97,7 @@ function renderQuiz() {
 
 function submitQuiz() {
     const name = document.getElementById('user-name').value;
-    if(!name.trim()) return alert("Digite seu nome!");
+    if(!name.trim()) return alert("Por favor, digite seu nome!");
     
     document.querySelectorAll('.question-block').forEach(b => b.classList.add('locked'));
     document.getElementById('btn-submit').classList.add('hidden');
@@ -116,23 +118,29 @@ function showResults() {
             block.classList.add('correct');
         } else {
             block.classList.add('wrong');
-            // Nota: O código apenas marca como vermelho. Ele NÃO mostra qual era a correta, 
-            // forçando o aluno a revisar o conteúdo como você pediu.
         }
     });
-    document.getElementById('results-summary').innerHTML = `Você acertou ${score} de ${quizData.length}`;
+    document.getElementById('results-summary').innerHTML = `Resultado: ${score} acertos de ${quizData.length}`;
     document.getElementById('results-summary').classList.remove('hidden');
+    window.scrollTo(0, document.body.scrollHeight);
 }
 
 function saveToHistory(name) {
-    let history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
+    let history = JSON.parse(localStorage.getItem('quiz_history_mal') || '[]');
     let answers = [];
     quizData.forEach((_, i) => {
         answers.push(document.querySelector(`input[name="q${i}"]:checked`)?.value || "n/a");
     });
     history.push({ name, answers, date: new Date().toLocaleString() });
-    localStorage.setItem('quiz_history', JSON.stringify(history));
-fetch('https://formspree.io/f/mojkedld',{method:'POST',headers: { 'Content-Type': 'application/json' },body: JSON.stringify({ nome: name, respostas: answers })});}
+    localStorage.setItem('quiz_history_mal', JSON.stringify(history));
+
+    // Envio para Formspree conforme seu link
+    fetch('https://formspree.io/f/xaqpeboe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome: name, respostas: answers, tema: "Origem do Mal" })
+    });
+}
 
 function accessAdmin() {
     const pass = prompt("Digite a senha do administrador:");
@@ -145,38 +153,38 @@ function accessAdmin() {
 }
 
 function renderAdminData() {
-    const data = JSON.parse(localStorage.getItem('quiz_history') || '[]');
+    const data = JSON.parse(localStorage.getItem('quiz_history_mal') || '[]');
     const content = document.getElementById('admin-content');
     const stats = document.getElementById('stats-content');
     
-    // Tabela de Alunos
-    let table = `<table><tr><th>Data</th><th>Nome</th><th>Erros (Questão: Resposta Dada)</th></tr>`;
+    if(data.length === 0) {
+        content.innerHTML = "<p>Nenhum registro encontrado.</p>";
+        return;
+    }
+
+    let table = `<table><tr><th>Data</th><th>Nome</th><th>Questões Erradas</th></tr>`;
     let errorCount = Array(quizData.length).fill(0);
 
     data.forEach(entry => {
         let userErrors = [];
         entry.answers.forEach((ans, i) => {
             if (parseInt(ans) !== quizData[i].ans) {
-                userErrors.push(`Q${i+1}: ${quizData[i].opts[ans] || 'Branco'}`);
+                userErrors.push(`Q${i+1}`);
                 errorCount[i]++;
             }
         });
-        table += `<tr><td>${entry.date}</td><td>${entry.name}</td><td>${userErrors.join(', ')}</td></tr>`;
+        table += `<tr><td>${entry.date}</td><td>${entry.name}</td><td>${userErrors.join(', ') || 'Nenhum'}</td></tr>`;
     });
     content.innerHTML = table + `</table>`;
 
-    // Gráfico de Percentual de Erros (Simples)
     let statsHtml = "";
-    let sortedStats = errorCount.map((count, i) => ({ q: i + 1, count: count }))
-                               .sort((a, b) => b.count - a.count);
-
-    sortedStats.forEach(s => {
-        let percent = data.length > 0 ? (s.count / data.length * 100).toFixed(1) : 0;
+    errorCount.forEach((count, i) => {
+        let percent = (count / data.length * 100).toFixed(1);
         statsHtml += `
-            <div style="margin: 5px 0;">
-                Questão ${s.q}: ${percent}% de erro
-                <div style="background:#eee; width:100%; height:10px; border-radius:5px;">
-                    <div style="background:var(--error); width:${percent}%; height:10px; border-radius:5px;"></div>
+            <div style="margin: 10px 0;">
+                <small>Questão ${i + 1}: ${percent}% de erro</small>
+                <div style="background:#eee; width:100%; height:8px; border-radius:4px;">
+                    <div style="background:var(--error); width:${percent}%; height:8px; border-radius:4px;"></div>
                 </div>
             </div>`;
     });
