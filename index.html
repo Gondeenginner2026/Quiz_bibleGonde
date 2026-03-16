@@ -3,195 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz: O Grande Conflito e a Origem do Mal</title>
+    <title>Estudo: A Origem do Mal</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #e67e22; --success: #27ae60; --error: #c0392b; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
-        #quiz-container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .question-block { margin-bottom: 25px; padding: 20px; border: 2px solid #eee; border-radius: 10px; transition: 0.4s; position: relative; }
-        
-        .correct { box-shadow: 0 0 15px rgba(39, 174, 96, 0.4); border-color: var(--success) !important; background: #f1f9f4; }
-        .wrong { box-shadow: 0 0 15px rgba(192, 57, 43, 0.4); border-color: var(--error) !important; background: #fff5f5; }
-        
-        .options label { display: block; margin: 8px 0; padding: 12px; background: #f8f9fa; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-        .options label:hover { background: #eef0f2; }
-        .locked { pointer-events: none; }
-        button { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; margin-top: 10px; transition: 0.3s; }
-        button:hover { opacity: 0.9; }
-        #completion-msg { text-align: center; border: 2px dashed var(--accent); padding: 20px; margin: 20px 0; border-radius: 10px; background: #fffcf9; }
-        .admin-section { margin-top: 50px; border-top: 2px solid #ddd; padding-top: 20px; }
+        :root { 
+            --primary: #2c3e50; 
+            --accent: #d4af37; 
+            --success: #27ae60; 
+            --error: #c0392b; 
+            --bg: #1a1a1a;
+            --card: #ffffff;
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: var(--bg); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            color: #333;
+        }
+
+        #quiz-container { 
+            width: 90%; 
+            max-width: 500px; 
+            background: var(--card); 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4); 
+            text-align: center;
+        }
+
+        .step { display: none; animation: slideIn 0.4s ease-out; }
+        .active { display: block; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.4em; }
+
+        .options-grid { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+
+        .opt-btn {
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        /* Cores de Feedback Imediato */
+        .correct-blink { background-color: var(--success) !important; color: white !important; border-color: #1e8449 !important; }
+        .error-blink { background-color: var(--error) !important; color: white !important; border-color: #922b21 !important; }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        #progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.4s;
+        }
+
+        .result-box { padding: 20px; background: #f9f9f9; border-radius: 12px; margin: 20px 0; text-align: left; }
         .hidden { display: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 14px; }
-        th { background: #f4f4f4; color: var(--primary); }
+        
+        .admin-btn { background: none; border: none; color: #999; font-size: 12px; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div id="quiz-container">
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h1 id="quiz-title">A Origem do Mal</h1>
-        <p>Estudo bíblico sobre o início do Grande Conflito</p>
+    <div class="progress-bar"><div id="progress-fill"></div></div>
+
+    <div id="step-name" class="step active">
+        <h2>Bem-vindo ao Estudo</h2>
+        <p>Para começar, como podemos te chamar?</p>
+        <input type="text" id="user-name" placeholder="Seu nome completo">
+        <button onclick="startQuiz()" style="margin-top:20px; background: var(--primary); color:white; padding:15px; width:100%; border-radius:10px; border:none; cursor:pointer; font-weight:bold;">COMEÇAR ESTUDO</button>
     </div>
 
-    <div id="questions-area"></div>
+    <div id="question-steps"></div>
 
-    <div id="user-info" class="question-block">
-        <h3>Insira seu nome para concluir:</h3>
-        <input type="text" id="user-name" placeholder="Seu nome completo" style="width: 100%; padding: 12px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;">
-    </div>
-
-    <button id="btn-submit" onclick="submitQuiz()">ENVIAR RESPOSTAS</button>
-
-    <div id="completion-msg" class="hidden">
-        <h2 style="font-style: italic; color: var(--primary);">"Lâmpada para os meus pés é a tua palavra e luz para o meu caminho."</h2>
+    <div id="step-finish" class="step">
+        <h2 style="font-style: italic;">"Lâmpada para os meus pés é a tua palavra e luz para o meu caminho."</h2>
         <p>(Salmos 119:105)</p>
-        <hr>
-        <p><strong>PARABÉNS! VOCÊ TERMINOU O QUIZ!</strong></p>
-        <button onclick="showResults()" style="background: var(--success);">VER MEU RESULTADO</button>
-    </div>
-
-    <div id="results-summary" class="hidden" style="text-align:center; font-size: 20px; margin: 20px; font-weight: bold; color: var(--primary);"></div>
-
-    <div class="admin-section">
-        <button id="btn-admin-access" onclick="accessAdmin()" style="background: #7f8c8d; width: auto; padding: 8px 15px;">Painel Administrativo</button>
-        <div id="admin-panel" class="hidden">
-            <h3>Relatório de Estudantes</h3>
-            <div id="admin-content" style="overflow-x: auto;"></div>
-            <h3>Análise de Dificuldade (Erros)</h3>
-            <div id="stats-content"></div>
-        </div>
+        <div class="result-box" id="final-summary"></div>
+        <button onclick="location.reload()" style="background: var(--primary); color:white; padding:15px; width:100%; border-radius:10px; border:none; cursor:pointer;">RECOMEÇAR</button>
+        <button class="admin-btn" onclick="accessAdmin()">Painel Admin</button>
     </div>
 </div>
 
 <script>
-const quizData = [
-    { q: "Como era o céu antes do pecado?", opts: ["Um lugar de regras rígidas e medo", "Um lugar de perfeita harmonia, paz e adoração", "Um lugar com discórdia controlada"], ans: 1 },
-    { q: "Quais são os anjos relacionados à adoração e pureza (Isaías 6:2)?", opts: ["Querubins", "Mensageiros", "Serafins"], ans: 2 },
-    { q: "Quem é Miguel, o Arcanjo, mencionado em Judas 1:9 e Daniel 12:1?", opts: ["O principal dos anjos criados", "Cristo em Sua função de Comandante", "Um anjo mensageiro como Gabriel"], ans: 1 },
-    { q: "Qual era a função de Lúcifer como 'Querubim Ungido'?", opts: ["Anunciar boas novas", "Cobrir e guardar a Glória de Deus", "Cuidar da natureza"], ans: 1 },
-    { q: "Qual foi a raiz da rebelião de Lúcifer no coração?", opts: ["Desejo de conhecer a Terra", "Orgulho e desejo de ser igual a Deus", "Cansaço de servir"], ans: 1 },
-    { q: "Contra quem foi a batalha descrita em Apocalipse 12:7-9?", opts: ["Miguel e seus anjos vs Dragão e seus anjos", "Anjos vs Seres Humanos", "Gabriel vs Lúcifer"], ans: 0 },
-    { q: "Por que Deus não destruiu Lúcifer imediatamente?", opts: ["Porque Lúcifer era mais forte", "Para que o universo visse as consequências do pecado e obedecesse por amor", "Porque Deus não faz julgamentos"], ans: 1 },
-    { q: "Em quantos dias Deus criou o nosso mundo e descansou?", opts: ["Criou em 6 dias literais e descansou no 7º", "Criou em 1 dia e descansou 6", "Levou milhões de anos"], ans: 0 },
-    { q: "Segundo o estudo, por que Deus criou Adão e Eva?", opts: ["Para substituir os anjos caídos", "Para serem administradores da criação e testemunhas do conflito", "Para morarem no céu imediatamente"], ans: 1 },
-    { q: "Através de quem o pecado entrou na raça humana (Representante)?", opts: ["Eva", "Adão", "Caim"], ans: 1 },
-    { q: "Qual foi a sentença dada ao Homem (Adão) após o pecado?", opts: ["Rastejar sobre a terra", "Trabalho penoso, fadiga e morte física", "Dor no parto"], ans: 1 },
-    { q: "Qual é o lugar onde Deus ensina o caminho da Redenção (Salmo 77:13)?", opts: ["No deserto", "No Santuário", "No Monte Sinai"], ans: 1 }
-];
+    const quizData = [
+        { q: "Como era o céu antes do pecado?", opts: ["Um lugar de regras rígidas e medo", "Um lugar de perfeita harmonia, paz e adoração", "Um lugar com discórdia controlada"], ans: 1 },
+        { q: "Quais são os anjos relacionados à adoração e pureza?", opts: ["Querubins", "Mensageiros", "Serafins"], ans: 2 },
+        { q: "Quem é Miguel, o Arcanjo, em Sua função real?", opts: ["Um anjo de terceira ordem", "Cristo, o Comandante dos anjos", "Um ser criado por Gabriel"], ans: 1 },
+        { q: "Lúcifer era um Querubim ungido para:", opts: ["Criar novos mundos", "Cobrir e guardar a Glória de Deus", "Destruir os ímpios"], ans: 1 },
+        { q: "O pecado nasceu em Lúcifer por causa do:", opts: ["Cansaço de servir", "Orgulho e desejo de ser igual a Deus", "Desejo de conhecer a Terra"], ans: 1 },
+        { q: "Em Apocalipse 12:7, a batalha foi entre:", opts: ["Miguel/Anjos vs Dragão/Anjos", "Humanos vs Gigantes", "Anjos vs Natureza"], ans: 0 },
+        { q: "Por que Deus não destruiu Lúcifer na hora?", opts: ["Não tinha poder", "Para o universo ver os frutos da rebelião", "Lúcifer pediu perdão"], ans: 1 },
+        { q: "Em quantos dias literais Deus fez o mundo?", opts: ["6 dias de trabalho e 1 de descanso", "7 dias de trabalho", "Milhões de anos"], ans: 0 },
+        { q: "Adão e Eva foram criados para serem:", opts: ["Escravos no Éden", "Administradores e testemunhas do conflito", "Anjos de carne e osso"], ans: 1 },
+        { q: "Quem foi o representante por onde o pecado entrou no mundo?", opts: ["A Serpente", "Adão", "Caim"], ans: 1 },
+        { q: "Qual a sentença final do homem pecador?", opts: ["Viver na lua", "Trabalho penoso e morte física", "Reencarnação"], ans: 1 },
+        { q: "Onde Deus ensina o caminho da Redenção?", opts: ["Nas estrelas", "No Santuário", "Nos sonhos"], ans: 1 }
+    ];
 
-function renderQuiz() {
-    const area = document.getElementById('questions-area');
-    quizData.forEach((item, i) => {
-        area.innerHTML += `
-            <div class="question-block" id="q-block-${i}">
-                <p><strong>${i+1}. ${item.q}</strong></p>
-                <div class="options" id="opts-${i}">
-                    ${item.opts.map((opt, optIdx) => `
-                        <label><input type="radio" name="q${i}" value="${optIdx}"> ${opt}</label>
+    let currentStep = -1; 
+    let score = 0;
+    let userName = "";
+    let userReport = [];
+
+    function startQuiz() {
+        userName = document.getElementById('user-name').value;
+        if(!userName.trim()) return alert("Por favor, digite seu nome.");
+        
+        currentStep = 0;
+        document.getElementById('step-name').classList.remove('active');
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const container = document.getElementById('question-steps');
+        const item = quizData[currentStep];
+        const progress = ((currentStep + 1) / quizData.length) * 100;
+        document.getElementById('progress-fill').style.width = progress + "%";
+
+        container.innerHTML = `
+            <div class="step active">
+                <p style="color:#888; font-weight:bold;">Questão ${currentStep + 1} de ${quizData.length}</p>
+                <h2>${item.q}</h2>
+                <div class="options-grid">
+                    ${item.opts.map((opt, i) => `
+                        <button class="opt-btn" onclick="checkAnswer(this, ${i})">${opt}</button>
                     `).join('')}
                 </div>
-            </div>`;
-    });
-}
+            </div>
+        `;
+    }
 
-function submitQuiz() {
-    const name = document.getElementById('user-name').value;
-    if(!name.trim()) return alert("Por favor, digite seu nome!");
-    
-    document.querySelectorAll('.question-block').forEach(b => b.classList.add('locked'));
-    document.getElementById('btn-submit').classList.add('hidden');
-    document.getElementById('user-info').classList.add('hidden');
-    document.getElementById('completion-msg').classList.remove('hidden');
+    function checkAnswer(btn, selectedIdx) {
+        const correctIdx = quizData[currentStep].ans;
+        const allBtns = document.querySelectorAll('.opt-btn');
+        allBtns.forEach(b => b.disabled = true);
 
-    saveToHistory(name);
-}
-
-function showResults() {
-    let score = 0;
-    quizData.forEach((item, i) => {
-        const selected = document.querySelector(`input[name="q${i}"]:checked`)?.value;
-        const block = document.getElementById(`q-block-${i}`);
+        const isCorrect = selectedIdx === correctIdx;
+        const textSelected = quizData[currentStep].opts[selectedIdx];
         
-        if (parseInt(selected) === item.ans) {
+        if(isCorrect) {
+            btn.classList.add('correct-blink');
             score++;
-            block.classList.add('correct');
+            userReport.push(`✅ Q${currentStep+1}: Correta (${textSelected})`);
         } else {
-            block.classList.add('wrong');
+            btn.classList.add('error-blink');
+            allBtns[correctIdx].classList.add('correct-blink'); // Mostra a certa pra ele aprender
+            userReport.push(`❌ Q${currentStep+1}: ERROU (Marcou: ${textSelected})`);
         }
-    });
-    document.getElementById('results-summary').innerHTML = `Resultado: ${score} acertos de ${quizData.length}`;
-    document.getElementById('results-summary').classList.remove('hidden');
-    window.scrollTo(0, document.body.scrollHeight);
-}
 
-function saveToHistory(name) {
-    let history = JSON.parse(localStorage.getItem('quiz_history_mal') || '[]');
-    let answers = [];
-    quizData.forEach((_, i) => {
-        answers.push(document.querySelector(`input[name="q${i}"]:checked`)?.value || "n/a");
-    });
-    history.push({ name, answers, date: new Date().toLocaleString() });
-    localStorage.setItem('quiz_history_mal', JSON.stringify(history));
-
-    // Envio para Formspree conforme seu link
-    fetch('https://formspree.io/f/mojkedld', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: name, respostas: answers, tema: "Origem do Mal" })
-    });
-}
-
-function accessAdmin() {
-    const pass = prompt("Digite a senha do administrador:");
-    if (pass === "GondeBiblia") {
-        document.getElementById('admin-panel').classList.remove('hidden');
-        renderAdminData();
-    } else {
-        alert("Senha incorreta!");
-    }
-}
-
-function renderAdminData() {
-    const data = JSON.parse(localStorage.getItem('quiz_history_mal') || '[]');
-    const content = document.getElementById('admin-content');
-    const stats = document.getElementById('stats-content');
-    
-    if(data.length === 0) {
-        content.innerHTML = "<p>Nenhum registro encontrado.</p>";
-        return;
-    }
-
-    let table = `<table><tr><th>Data</th><th>Nome</th><th>Questões Erradas</th></tr>`;
-    let errorCount = Array(quizData.length).fill(0);
-
-    data.forEach(entry => {
-        let userErrors = [];
-        entry.answers.forEach((ans, i) => {
-            if (parseInt(ans) !== quizData[i].ans) {
-                userErrors.push(`Q${i+1}`);
-                errorCount[i]++;
+        setTimeout(() => {
+            currentStep++;
+            if(currentStep < quizData.length) {
+                renderQuestion();
+            } else {
+                finishQuiz();
             }
+        }, 1500); // Espera 1.5s para o aluno ver a cor antes de mudar
+    }
+
+    function finishQuiz() {
+        document.getElementById('question-steps').innerHTML = "";
+        document.getElementById('step-finish').classList.add('active');
+        document.getElementById('progress-fill').style.width = "100%";
+        
+        const summary = document.getElementById('final-summary');
+        summary.innerHTML = `
+            <p><strong>Estudante:</strong> ${userName}</p>
+            <p><strong>Acertos:</strong> ${score} de ${quizData.length}</p>
+            <hr>
+            <small>${userReport.join('<br>')}</small>
+        `;
+
+        // Enviar para Formspree de forma super detalhada
+        fetch('https://formspree.io/f/mojkedld', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                Estudante: userName,
+                Resultado_Final: `${score} de ${quizData.length}`,
+                Relatorio_Detalhado: userReport
+            })
         });
-        table += `<tr><td>${entry.date}</td><td>${entry.name}</td><td>${userErrors.join(', ') || 'Nenhum'}</td></tr>`;
-    });
-    content.innerHTML = table + `</table>`;
 
-    let statsHtml = "";
-    errorCount.forEach((count, i) => {
-        let percent = (count / data.length * 100).toFixed(1);
-        statsHtml += `
-            <div style="margin: 10px 0;">
-                <small>Questão ${i + 1}: ${percent}% de erro</small>
-                <div style="background:#eee; width:100%; height:8px; border-radius:4px;">
-                    <div style="background:var(--error); width:${percent}%; height:8px; border-radius:4px;"></div>
-                </div>
-            </div>`;
-    });
-    stats.innerHTML = statsHtml;
-}
+        // Guardar no local para o Admin
+        let history = JSON.parse(localStorage.getItem('bible_slides_history') || '[]');
+        history.push({ name: userName, score, date: new Date().toLocaleString(), report: userReport });
+        localStorage.setItem('bible_slides_history', JSON.stringify(history));
+    }
 
-renderQuiz();
+    function accessAdmin() {
+        if(prompt("Senha do Admin:") === "GondeBiblia") {
+            const data = JSON.parse(localStorage.getItem('bible_slides_history') || '[]');
+            alert("Registros nesta máquina: " + data.length + "\nVerifique seu e-mail para detalhes completos.");
+        }
+    }
 </script>
+
 </body>
 </html>
