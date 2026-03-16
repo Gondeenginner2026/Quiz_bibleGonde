@@ -135,7 +135,7 @@ function saveToHistory(name) {
     localStorage.setItem('quiz_history_mal', JSON.stringify(history));
 
     // Envio para Formspree conforme seu link
-    fetch('https://formspree.io/f/xaqpeboe', {
+    fetch('https://formspree.io/f/mojkedld', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nome: name, respostas: answers, tema: "Origem do Mal" })
